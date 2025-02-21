@@ -13,7 +13,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var conectionString string = "mongodb+srv://brainphil:IFYEwcbmGYEMpTGl@mycluster.vuxlq.mongodb.net/?retryWrites=true&w=majority&appName=MyCluster"
+var conectionString string = "mongodb+srv://brainphil:9J7DUMZJl5bxPCHU@mycluster.vuxlq.mongodb.net/?retryWrites=true&w=majority&appName=MyCluster"
 
 type Db struct {
 	client *mongo.Client
@@ -138,12 +138,18 @@ func (db *Db) UpdateJobListing(id string, jobInfo model.UpdateJobListingInput) *
 	return &jobListing
 }
 
-func (db *Db) DeleteJobListing(jobId string) *model.DeleteJobResponse {
+func (db *Db) DeleteJobListing(id string) *model.DeleteJobResponse {
 
-	// jobCollection := db.client.Database("mainDB").Collection("jobs")
-	// ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	// defer cancel()
+	jobCollection := db.client.Database("mainDB").Collection("jobs")
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
 
-	var deletedJobResponse model.DeleteJobResponse
-	return &deletedJobResponse
+	_id, _ := primitive.ObjectIDFromHex(id)
+	filter := bson.M{"_id": _id}
+	_, err := jobCollection.DeleteOne(ctx, filter)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return &model.DeleteJobResponse{DeleteJobID: id}
 }
